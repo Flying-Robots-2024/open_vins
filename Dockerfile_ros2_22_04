@@ -43,5 +43,19 @@ RUN ( \
   && mkdir /run/sshd
 RUN useradd -m user && yes password | passwd user
 RUN usermod -s /bin/bash user
+
+RUN mkdir -p ~/odom_ws/src && cd ~/odom_ws
+
+WORKDIR /root/odom_ws
+
+RUN cd ~/odom_ws/src && git clone https://github.com/Flying-Robots-2024/open_vins.git && \
+    cd .. && /bin/bash -c "source /ros_entrypoint; colcon build --event-handlers console_cohesion+"
+
+RUN echo "#!/bin/bash" >> /entrypoint.sh && \ 
+    echo "source /ros_entrypoint" >> /entrypoint.sh && \ 
+    echo "source /root/odom_ws/install/local_setup.bash" >> /entrypoint.sh && \ 
+    echo "exec \"$@\"" >> /entrypoint.sh && \ 
+    chmod +x /entrypoint.sh
+
 CMD ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/ssh/sshd_config_test_clion"]
 
